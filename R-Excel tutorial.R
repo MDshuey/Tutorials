@@ -10,9 +10,9 @@ getwd()
 #Replace backslashes with forward ones via Ctrl-R
 #Don't forget to select sheet and skip!
 library(readxl)
-WinePrd = read_excel("C:/Users/LENOVO/Documents/GitHub/Tutorials/Megafile_of_global_wine_data_1835_to_2016_1217.xlsx", 
+WinePrd = read_excel("C:/Users/.../Megafile_of_global_wine_data_1835_to_2016_1217.xlsx", 
                       sheet = "T6 Wine production", skip=1)
-WineCon = read_excel("C:/Users/LENOVO/Documents/GitHub/Tutorials/Megafile_of_global_wine_data_1835_to_2016_1217.xlsx", 
+WineCon = read_excel(, 
                     sheet = "T34 Wine consumption vol", skip = 1)
 View(WinePrd)
 colnames(WinePrd)[1]="Year"
@@ -32,14 +32,14 @@ tidy.prd = gather(WinePrd, key=Country, value=Vol, -Year, -X__2, -ncol(WinePrd))
 #removing extra column
 tidy.prd = tidy.prd[,-2]
 
-#repeating for wine consumption.
-tidy.con = gather(WineCon, key=Country, value= Vol, -Year, -X__2, -`Coeff. of variation`)
+#repeating for wine consumption (WineCon.
+tidy.con = 
 tidy.con = tidy.con[,-2]
 
 library(dplyr)
-tidy.wine=merge(tidy.prd, tidy.con, by=c("Year", "Country"), suffixes=c(".prd",".con"), all=T)
+tidy.wine=merge(tidy.prd, tidy.con, by=c("Year", "Country"), suffixes=c(".prd",".con"))
 View(tidy.wine)
-#Hold on, we're missing something! (all=T)
+#Hold on, we're missing something!
 
 #Now we want better factors to organize our countries with.
 tidy.wine[,7] = tidy.wine$Region
@@ -55,6 +55,7 @@ tidy.wine$Region=as.factor(tidy.wine$Region)
 #Did we factor everything as we wanted to?
 summary(tidy.wine$Region)
 #We're ready to move on!
+
 #----
 #PHASE THREE: Graphs and subset analysis
 library(ggplot2)
@@ -73,4 +74,4 @@ Regionsums= tidy.wine %>%
                 group_by(Year, Region) %>%
                 summarise(sum.prd=sum(Vol.prd))
 r.y= ggplot(Regionsums, aes(Year, sum.prd, group=Region, col=Region))
-r.y+geom_line()+labs("Yearly Wine Production by Global Region") 
+r.y+geom_line()+labs("Yearly Wine Production by Global Region", "Year","Production") 
