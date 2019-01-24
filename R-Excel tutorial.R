@@ -59,7 +59,18 @@ summary(tidy.wine$Region)
 #PHASE THREE: Graphs and subset analysis
 library(ggplot2)
 tidy.wine = tidy.wine %>% mutate(`net`=`Vol.prd`-`Vol.con`)
+
 Region.Prd.Year=spread(tidy.wine, Region, -2)
-summarise(group_by(tidy.wine, Region), sum.prd=sum(Vol.prd))
-r.y=ggplot(tidy.wine[tidy.wine$Country=="Portugal",], aes(Year, `Vol.prd`))
-r.y+geom_line()
+
+pt.y=ggplot(tidy.wine[tidy.wine$Country=="Portugal",], aes(Year, sum(`Vol.prd`)))
+
+Regionsums= summarise(group_by(tidy.wine, Year, Region), sum.prd=sum(Vol.prd))
+View(Regionsums)
+#Can anyone figure out what's wrong here?
+#Introducing the pipe operator, to make our code more readable
+Regionsums= tidy.wine %>%
+                na.omit() %>%
+                group_by(Year, Region) %>%
+                summarise(sum.prd=sum(Vol.prd))
+r.y= ggplot(Regionsums, aes(Year, sum.prd, group=Region, col=Region))
+r.y+geom_line()+labs("Yearly Wine Production by Global Region") 
