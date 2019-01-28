@@ -10,10 +10,10 @@ getwd()
 #Replace backslashes with forward ones via Ctrl-R
 #Don't forget to select sheet and skip!
 library(readxl)
-WinePrd = read_excel("C:\Users\LENOVO\Documents\GitHub\Tutorials\Megafile_of_global_wine_data_1835_to_2016_1217.xlsx", 
-                      sheet = "T6 Wine production", skip = 1)
-WineCon = read_excel(, 
-                    sheet = "T34 Wine consumption vol", skip = 1)
+WinePrd = read_excel("C:/Users/LENOVO/Documents/GitHub/Tutorials/Megafile_of_global_wine_data_1835_to_2016_1217.xlsx", 
+                     sheet = "T6 Wine production", skip=1)
+WineCon = read_excel("C:/Users/LENOVO/Documents/GitHub/Tutorials/Megafile_of_global_wine_data_1835_to_2016_1217.xlsx", 
+                     sheet = "T34 Wine consumption vol", skip = 1)
 View(WinePrd)
 colnames(WinePrd)[1]="Year"
 View(WineCon)
@@ -28,18 +28,18 @@ colnames(WineCon)[1]="Year"
 #PHASE TWO: Slicing data into cross-sections
 library(tidyr)
 #converting from wide to tall
-tidy.prd = gather(WinePrd, key=Country, value=Vol, -Year, -X__2, -ncol(WinePrd))
+tidy.prd = gather(WinePrd, key=Country, value=Vol, -Year, -56, -ncol(WinePrd))
 #removing extra column
 tidy.prd = tidy.prd[,-2]
 
-#repeating for wine consumption (WineCon.
-tidy.con = 
+#repeating for wine consumption.
+tidy.con = gather(WineCon, key=Country, value= Vol, -Year, -57, -`Coeff. of variation`)
 tidy.con = tidy.con[,-2]
 
 library(dplyr)
 tidy.wine=merge(tidy.prd, tidy.con, by=c("Year", "Country"), suffixes=c(".prd",".con"), all=T)
 View(tidy.wine)
-#Hold on, we're missing something!
+#Hold on, we're missing something! (all=T)
 
 #Now we want better factors to organize our countries with.
 tidy.wine[,7] = tidy.wine$Region
@@ -59,19 +59,26 @@ summary(tidy.wine$Region)
 #----
 #PHASE THREE: Graphs and subset analysis
 library(ggplot2)
-tidy.wine = tidy.wine %>% mutate(`net`=`Vol.prd`-`Vol.con`)
-tiny.wine$net = `Vol.prd` 
-Region.Prd.Year=spread(tidy.wine, Region, -2)
+tidy.wine = mutate(tidy.wine,`net`=`Vol.prd`-`Vol.con`)
 
-pt.y=ggplot(tidy.wine[tidy.wine$Country=="Portugal",], aes(Year, sum(`Vol.prd`)))
-pt.y+geom_line()
+Region.Prd.Year=spread(tidy.wine, Region, -2)
+#Creating our first plot
+pt.y=ggplot(na.omit(tidy.wine[tidy.wine$Country=="Portugal",]), aes(Year, `Vol.prd`))
+pt.y+
+  geom_line()+
+  labs(title="Wine Production, Portugal (kL)")
 Regionsums= summarise(group_by(tidy.wine, Year, Region), sum.prd=sum(Vol.prd))
 View(Regionsums)
 #Can anyone figure out what's wrong here?
 #Introducing the pipe operator, to make our code more readable
 Regionsums= tidy.wine %>%
-                na.omit() %>%
-                group_by(Year, Region) %>%
-                summarise(sum.prd=sum(Vol.prd))
+  na.omit() %>%
+  group_by(Year, Region) %>%
+  summarise(sum.prd=sum(Vol.prd))
+library(xlsx)
+#exporting
+write.xlsx(Regionsums, paste(getwd(), "/World Regional Wine Production.xlsx", sep=""))
+
+#one more plot!
 r.y= ggplot(Regionsums, aes(Year, sum.prd, group=Region, col=Region))
-r.y+geom_line()+labs("Yearly Wine Production by Global Region", "Year","Production") 
+r.y+geom_line()+labs("Yearly Wine Production by Global Region", "Year","Production")
